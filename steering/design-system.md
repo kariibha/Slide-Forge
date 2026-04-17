@@ -49,18 +49,46 @@ Background: `#FFFFFF` · Reveal theme: `white.css` · Bullet: `▸` in accent
 
 ## Footer Bar
 
-Every slide should have a footer. The footer content is customizable — ask the user for:
+The footer is a **single fixed div placed outside the `.reveal` container** — always pinned to the bottom of the screen regardless of slide content.
+
+Ask the user for:
 - Logo (SVG or image URL)
 - Copyright text
 - Company name
 
-Default footer (no branding):
 ```css
-.sf-footer { position:absolute; bottom:0; left:0; right:0; height:32px; background:rgba(0,0,0,0.4);
-  display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:100;
-  border-top:1px solid rgba(255,255,255,0.04); }
+.sf-footer {
+  position:fixed; bottom:0; left:0; right:0; height:32px;
+  background:rgba(0,0,0,0.4); display:flex; align-items:center;
+  justify-content:space-between; padding:0 24px; z-index:1000;
+  pointer-events:none; border-top:1px solid rgba(255,255,255,0.04);
+}
 .sf-footer span { font-size:10px; color:var(--muted); }
 ```
+
+Place the footer HTML **after** the closing `</div>` of `.reveal`, before the `<script>` tags:
+```html
+</div></div><!-- end .reveal -->
+
+<div class="sf-footer">
+  <span>Logo here</span>
+  <span>© Company Name</span>
+  <span class="sn"></span>
+</div>
+
+<script src="..."></script>
+```
+
+Update slide number via JS:
+```javascript
+Reveal.on('slidechanged', function(){
+  var t=Reveal.getTotalSlides(), c=Reveal.getIndices().h+1;
+  document.querySelectorAll('.sn').forEach(function(el){ el.textContent=c+' / '+t; });
+});
+```
+
+**Do NOT** place the footer inside `<section>` tags — it causes layout issues.
+**Do NOT** add `min-height:100%` or `position:relative` to sections — breaks Reveal.js.
 
 ## Slide Sizing
 - 1280×720, margin 0.02
@@ -69,6 +97,18 @@ Default footer (no branding):
 - Split slides rather than shrink fonts
 
 ## Reveal.js Config
+
+**CDN:** Always use `cdnjs.cloudflare.com` — NOT `cdn.jsdelivr.net`. Use `.min` versions.
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/black.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+```
+
+Do NOT include `notes.css` as a stylesheet link — it fails on `file://` protocol.
+
 ```javascript
 Reveal.initialize({
   width:1280, height:720, margin:0.02, scrollActivationWidth:null,
@@ -78,7 +118,13 @@ Reveal.initialize({
 });
 ```
 
-**Important:** Do NOT use `view:'scroll'` — it breaks arrow navigation and speaker notes.
+**CRITICAL RULES:**
+- Do NOT use `view:'scroll'` — breaks arrow navigation and speaker notes
+- Do NOT add `min-height:100%` to sections — breaks Reveal.js layout
+- Do NOT add `position:relative` to sections — causes slides to disappear
+- Do NOT use `cdn.jsdelivr.net` for Reveal.js — use `cdnjs.cloudflare.com`
+- Do NOT link `notes.css` — causes `file://` security errors
+- Do NOT place footer inside `<section>` tags — use global fixed footer outside `.reveal`
 
 ## Interactive Editing Toolbar
 
